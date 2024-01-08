@@ -1,0 +1,33 @@
+name: auto
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
+  schedule:
+    - cron: "*/53 * * * *"
+    
+env:
+  TZ: Asia/Shanghai
+  
+jobs:
+  autogreen:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+  
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+        
+      - name: Auto green
+        run: |
+          git config --local user.email "test+github-actions[bot]@users.noreply.github.com"
+          # git config --local user.name "${{ github.actor }}"        
+          git config --local user.name "github-actions[bot]"
+          git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git pull --rebase
+          git commit --allow-empty -m "a commit a day keeps $(date +'%Y-%m-%d %H:%M:%S') , This random number : $(shuf -i 2000-9999 -n 1) , OK"
+          git push

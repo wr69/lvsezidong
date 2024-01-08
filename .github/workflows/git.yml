@@ -1,0 +1,35 @@
+name: clean GIT
+
+on:
+  schedule:
+    - cron: '10 1 * * *'
+  workflow_dispatch:
+   
+env:
+  TZ: Asia/Shanghai
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Commit and push
+        run: |
+          git config --local user.email "test+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # git config --local user.name "${{ github.actor }}"
+          git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          # git pull --rebase
+          git checkout --orphan latest_branch
+          git rm -rf --cached .
+          git add -A
+          git commit -m "$(date +'%Y-%m-%d %H:%M:%S') OK"
+          git branch -D ${{ github.ref_name }}
+          git branch -m ${{ github.ref_name }}
+          git push -f origin ${{ github.ref_name }}
